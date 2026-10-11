@@ -238,3 +238,7 @@ AIを下書きに使う場合も、数値・正解・解説を確認してから
 ## 11. 画面遷移図
 
 [Figmaで画面遷移図を見る](https://www.figma.com/design/tKySau3S8AUplsdx7pvJUd?node-id=40-2)
+
+## 12. ER図
+
+[ER図を見る](./kessan-shokudo-er.png)
