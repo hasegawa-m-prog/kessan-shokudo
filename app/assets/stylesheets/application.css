@@ -1,0 +1,66 @@
+/*
+ * This is a manifest file that'll be compiled into application.css.
+ *
+ * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
+ * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
+ * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
+ * depending on specificity.
+ *
+ * Consider organizing styles into separate files for maintainability.
+*/
+:root { color-scheme: light; --ink: #24372f; --muted: #58685e; --accent: #2d6349; --line: #dbe2d9; --paper: #faf9f4; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.8 system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
+a { color: var(--accent); text-underline-offset: .24em; }
+a:hover { text-decoration-thickness: 2px; }
+button, input { font: inherit; }
+button, a, input { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #aa6315; outline-offset: 4px; }
+.site-header { max-width: 1160px; margin: auto; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
+.brand { font-size: 22px; font-weight: 800; text-decoration: none; letter-spacing: .08em; }
+nav { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+nav a, .nav-button { font-size: 14px; }
+.nav-button { color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 8px 15px; cursor: pointer; }
+.container { max-width: 1100px; margin: auto; padding: 0 32px 64px; }
+.hero { padding: 76px 0 60px; max-width: 850px; }
+.eyebrow { color: var(--accent); font-weight: 700; letter-spacing: .18em; margin-bottom: 18px; }
+h1 { font-size: clamp(30px, 4.4vw, 54px); line-height: 1.45; letter-spacing: .04em; margin: 0 0 24px; }
+h2 { font-size: 23px; margin: 0 0 22px; }
+h3 { font-size: 19px; margin: 10px 0; }
+.lead { color: var(--muted); line-height: 2; }
+.actions { display: flex; gap: 16px; flex-wrap: wrap; margin: 30px 0 16px; }
+.button { display: inline-block; padding: 13px 24px; border-radius: 8px; border: 1px solid var(--accent); text-align: center; text-decoration: none; font-weight: 700; cursor: pointer; }
+.primary { background: var(--accent); color: white; }
+.secondary { background: white; color: var(--accent); }
+.button:disabled { background: #e1e7df; color: #52604f; border-color: #bdc9b8; cursor: not-allowed; }
+.note, .login-state { font-size: 13px; color: var(--muted); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { border: 1px solid var(--line); border-radius: 12px; background: white; padding: 26px; }
+.card p { color: var(--muted); margin-bottom: 0; }
+.step { font-weight: 700; color: var(--accent); letter-spacing: .1em; }
+.notice { background: #edf1e9; border-radius: 12px; padding: 28px 32px; margin-top: 36px; }
+.notice h2 { font-size: 19px; margin-bottom: 12px; }
+.notice p { margin: 8px 0; color: var(--muted); }
+.site-footer { padding: 24px; text-align: center; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+.form-card { max-width: 540px; margin: 48px auto 0; padding: 32px; background: white; border: 1px solid var(--line); border-radius: 12px; }
+.form-card h1 { font-size: 28px; }
+.form-card label { display: block; font-weight: 600; margin: 20px 0 6px; }
+.form-card input:not([type=submit]) { width: 100%; padding: 12px; border: 1px solid #8b9a8d; border-radius: 6px; }
+.form-card input[type=submit] { margin-top: 28px; width: 100%; }
+.flash { padding: 14px 20px; margin-top: 24px; border-radius: 8px; background: #e6efdf; border: 1px solid #a3b49a; overflow-wrap: anywhere; }
+.flash.alert { background: #fff0ec; border-color: #b9664d; color: #74321d; }
+.flash p { margin: 0; }
+.skip-link { position: absolute; top: -100px; padding: 10px; background: white; }
+.skip-link:focus { top: 0; z-index: 10; }
+@media (max-width: 640px) {
+  .site-header { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
+  .brand { font-size: 20px; }
+  nav { gap: 18px; }
+  .container { padding: 0 20px 40px; }
+  .hero { padding: 40px 0; }
+  .desktop-only { display: none; }
+  .steps { grid-template-columns: 1fr; gap: 14px; }
+  .actions { flex-direction: column; }
+  .notice { padding: 22px; }
+  .form-card { padding: 24px 20px; margin-top: 28px; }
+}

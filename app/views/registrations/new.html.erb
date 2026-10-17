@@ -1,0 +1,19 @@
+<% content_for :title, "ユーザー登録｜決算食堂" %>
+<section class="form-card">
+  <h1>ユーザー登録</h1>
+  <p>今後のクイズで、回答履歴と復習を利用するためのアカウントを作成します。</p>
+  <% if @user.errors.any? %>
+    <div class="flash alert" role="alert"><p>入力内容をご確認ください。</p><ul><% @user.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div>
+  <% end %>
+  <%= form_with model: @user, url: registrations_path do |form| %>
+    <%= form.label :email %>
+    <%= form.email_field :email, required: true, maxlength: 254, autocomplete: "email" %>
+    <%= form.label :password, "パスワード（12文字以上）" %>
+    <%= form.password_field :password, required: true, minlength: 12, autocomplete: "new-password", aria: { describedby: "password-help" } %>
+    <p id="password-help" class="note">他のサービスとは異なるパスワードを使用してください。最大72バイトです。</p>
+    <%= form.label :password_confirmation %>
+    <%= form.password_field :password_confirmation, required: true, minlength: 12, autocomplete: "new-password" %>
+    <%= form.submit "登録する", class: "button primary" %>
+  <% end %>
+  <p><%= link_to "登録済みの方はログイン", login_path %></p>
+</section>

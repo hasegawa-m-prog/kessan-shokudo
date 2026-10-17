@@ -1,0 +1,12 @@
+<% content_for :title, "ログイン｜決算食堂" %>
+<section class="form-card">
+  <h1>ログイン</h1>
+  <%= form_with scope: :user, url: session_path do |form| %>
+    <%= form.label :email, "メールアドレス" %>
+    <%= form.email_field :email, required: true, autocomplete: "email", value: params.dig(:user, :email) %>
+    <%= form.label :password, "パスワード" %>
+    <%= form.password_field :password, required: true, autocomplete: "current-password" %>
+    <%= form.submit "ログインする", class: "button primary" %>
+  <% end %>
+  <p><%= link_to "初めての方はユーザー登録", signup_path %></p>
+</section>
