@@ -23,7 +23,7 @@ RSpec.describe "Private history and one-question review", type: :request do
   end
 
   it "requires login for all history and review operations" do
-    [ histories_path, history_path(1), reviews_path, review_path ].each do |url|
+    [ histories_path, history_path(1), quiz_run_path(1), reviews_path, review_path ].each do |url|
       get url
       expect(response).to redirect_to(login_path)
     end
@@ -47,7 +47,11 @@ RSpec.describe "Private history and one-question review", type: :request do
     delete session_path
     sign_in
     get histories_path
+    expect(response.body).to include("5問クイズ", "1問回答済み", "未完了")
+    get quiz_run_path(answer.quiz_run_question.quiz_run_id)
     expect(response.body).to include(answer.choice.body, "× 不正解", answer.answered_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M"))
+    expect(Nokogiri::HTML(response.body).css('.run-question-list > li').size).to eq(5)
+    expect(response.body).to include("2問目：未回答")
     get history_path(answer)
     expect(response).to have_http_status(:ok)
     expect(response.body).to include(answer.quiz_run_question.question.body, "問題の版：#{DemoLearningContent::VERSION}", "この問題を復習する")
@@ -60,6 +64,8 @@ RSpec.describe "Private history and one-question review", type: :request do
     get histories_path(user_id: foreign.quiz_run_question.quiz_run.user_id)
     expect(response.body).to include("回答履歴はありません")
     get history_path(foreign)
+    expect(response).to have_http_status(:not_found)
+    get quiz_run_path(foreign.quiz_run_question.quiz_run_id)
     expect(response).to have_http_status(:not_found)
     expect { post review_path, params: { answer_id: foreign.id } }.not_to change(QuizRun, :count)
     expect(response).to have_http_status(:not_found)
@@ -108,7 +114,10 @@ RSpec.describe "Private history and one-question review", type: :request do
     expect(run.completed_at).to be_present
     expect(run.answers.sole).to be_correct
     get histories_path
-    expect(response.body).to include("クイズ", "復習", "× 不正解", "○ 正解")
+    expect(response.body).to include("クイズ", "復習", "5問中 0問正解", "1問中 1問正解")
+    expect(Nokogiri::HTML(response.body).css('.history-list > li').size).to eq(2)
+    get quiz_run_path(run)
+    expect(response.body).to include("○ 正解", question.title)
     get reviews_path
     expect(Nokogiri::HTML(response.body).css('input[name="answer_id"]').size).to eq(1)
   end
@@ -142,17 +151,36 @@ RSpec.describe "Private history and one-question review", type: :request do
     expect(response).to redirect_to(login_path)
   end
 
-  it "paginates histories without dropping or repeating answers" do
+  it "paginates learning runs without dropping or repeating them" do
     21.times { recorded_answer }
     sign_in
     get histories_path
     first_ids = Nokogiri::HTML(response.body).css('.history-list h2 a').map { |link| link["href"] }
     expect(first_ids.size).to eq(20)
-    expect(first_ids).to eq(user.answers.reorder(answered_at: :desc, id: :desc).limit(20).map { |answer| history_path(answer) })
+    expect(first_ids).to eq(user.quiz_runs.order(started_at: :desc, id: :desc).limit(20).map { |run| quiz_run_path(run) })
     expect(response.body).to include("次の20件")
     get histories_path(page: 2)
     last_ids = Nokogiri::HTML(response.body).css('.history-list h2 a').map { |link| link["href"] }
     expect(last_ids.size).to eq(1)
     expect(first_ids & last_ids).to be_empty
+  end
+
+  it "groups five answers into one completed run and excludes runs without answers" do
+    empty = QuizAttempt.start(session: {}, user: user, industry: Industry.first)
+    attempt = QuizAttempt.start(session: {}, user: user, industry: nil)
+    attempt.questions.each_with_index do |question, index|
+      attempt.answer!(position: index + 1, choice_id: question.correct_choice.id, token: attempt.token)
+    end
+    sign_in
+    get histories_path
+    expect(Nokogiri::HTML(response.body).css('.history-list > li').size).to eq(1)
+    expect(response.body).to include("おまかせ", "5問中 5問正解", "5問回答済み")
+    run = user.quiz_runs.where(industry_id: nil).sole
+    get quiz_run_path(run)
+    expect(Nokogiri::HTML(response.body).css('.run-question-list > li').size).to eq(5)
+    expect(response.body).not_to include("未回答", "この問題を復習する")
+    get quiz_run_path(user.quiz_runs.where(industry: Industry.first).sole)
+    expect(response).to have_http_status(:not_found)
+    expect(empty.selected_ids).to be_empty
   end
 end

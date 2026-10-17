@@ -7,15 +7,21 @@ class QuizzesController < ApplicationController
 
   def new
     @industries = Industry.order(:id)
+    @selection = QuizSelection.find(params[:industry_id])
+  end
+
+  def confirmation
+    @selection = QuizSelection.find(params[:industry_id])
+    redirect_to new_quiz_path, alert: "学びたい業種を選んでください。" unless @selection
   end
 
   def create
-    industry = Industry.find_by(id: params[:industry_id]) unless params[:industry_id] == "random"
-    unless industry || params[:industry_id] == "random"
+    selection = QuizSelection.find(params[:industry_id])
+    unless selection
       redirect_to new_quiz_path, alert: "学びたい業種を選んでください。"
       return
     end
-    QuizAttempt.start(session: session, user: current_user, industry: industry)
+    QuizAttempt.start(session: session, user: current_user, industry: selection.industry)
     redirect_to quiz_path(position: 1), status: :see_other
   rescue QuestionPicker::NotEnoughQuestions => error
     redirect_to new_quiz_path, alert: error.message, status: :see_other

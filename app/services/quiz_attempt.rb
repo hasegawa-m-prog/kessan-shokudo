@@ -3,7 +3,7 @@ class QuizAttempt
   class InvalidAnswer < StandardError; end
   class Expired < StandardError; end
   class StaleForm < StandardError; end
-  attr_reader :token, :questions, :selected_ids, :industry_name
+  attr_reader :token, :questions, :selected_ids, :industry_name, :industry_key
 
   def self.start(session:, user:, industry:)
     ids = QuestionPicker.call(industry)
@@ -16,7 +16,7 @@ class QuizAttempt
       end
       state["run_id"] = run.id
     else
-      state.merge!("ids" => ids, "answers" => [], "industry" => industry&.name || "おまかせ")
+      state.merge!("ids" => ids, "answers" => [], "industry" => industry&.name || "おまかせ", "industry_id" => industry&.id&.to_s || "random")
     end
     session[:quiz] = state
     new(session: session, user: user)
@@ -48,11 +48,14 @@ class QuizAttempt
       raise Expired unless @run && @run.kind == kind
       reload_member
       @industry_name = @run.industry&.name || "おまかせ"
+      @industry_key = @run.industry_id&.to_s || "random"
     else
       raise Expired if user || kind == "review" # ゲストの記録を会員へ引き継がない
       @selected_ids = @state.fetch("answers")
       load_questions(@state.fetch("ids"))
       @industry_name = @state.fetch("industry")
+      # 公開済みの旧Cookieにはindustry_idがないため、表示名から補います。
+      @industry_key = @state["industry_id"] || Industry.find_by(name: @industry_name)&.id&.to_s || "random"
     end
   rescue KeyError
     raise Expired

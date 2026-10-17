@@ -2,10 +2,12 @@
 <section class="form-card">
   <h1>ユーザー登録</h1>
   <p>今後のクイズで、回答履歴と復習を利用するためのアカウントを作成します。</p>
+  <% if @quiz_selection %><p><%= @quiz_selection.name %>を選択中です。登録・ログイン後、開始確認画面へ戻ります。</p><% end %>
   <% if @user.errors.any? %>
     <div class="flash alert" role="alert"><p>入力内容をご確認ください。</p><ul><% @user.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div>
   <% end %>
   <%= form_with model: @user, url: registrations_path do |form| %>
+    <%= hidden_field_tag :quiz_industry, @quiz_selection.key if @quiz_selection %>
     <%= form.label :email %>
     <%= form.email_field :email, required: true, maxlength: 254, autocomplete: "email" %>
     <%= form.label :password, "パスワード（12文字以上）" %>
@@ -15,5 +17,5 @@
     <%= form.password_field :password_confirmation, required: true, minlength: 12, autocomplete: "new-password" %>
     <%= form.submit "登録する", class: "button primary" %>
   <% end %>
-  <p><%= link_to "登録済みの方はログイン", login_path %></p>
+  <p><%= link_to "登録済みの方はログイン", login_path(quiz_industry: @quiz_selection&.key) %></p>
 </section>

@@ -10,5 +10,10 @@
     <% end %>
   </ol>
   <%= render "save_notice" %>
-  <div class="actions"><%= link_to "業種を選んでもう一度", new_quiz_path, class: "button primary" %><%= link_to "TOPへ戻る", root_path, class: "button secondary" %></div>
+  <div class="actions">
+    <%= link_to "同じ業種に再挑戦", confirmation_quiz_path(industry_id: @attempt.industry_key), class: "button primary" %>
+    <%= link_to "別の業種を選ぶ", new_quiz_path, class: "button secondary" %>
+    <% if current_user %><%= link_to "間違えた問題を復習する", reviews_path, class: "button secondary" %><% end %>
+    <%= link_to "TOPへ戻る", root_path, class: "button secondary" %>
+  </div>
 </section>

@@ -82,8 +82,8 @@ h3 { font-size: 19px; margin: 10px 0; }
 .result-list { padding-left: 24px; }
 .result-list li { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .result-list span { display: block; font-size: 14px; }
-.history-list { padding: 0; list-style: none; display: grid; gap: 16px; }
-.history-list h2 { margin: 10px 0; font-size: 20px; }
+.history-list, .run-question-list { padding: 0; list-style: none; display: grid; gap: 16px; }
+.history-list h2, .run-question-list h2 { margin: 10px 0; font-size: 20px; }
 @media (max-width: 640px) {
   .diagrams { grid-template-columns: 1fr; }
   .balance-sheet { display: block; grid-row: auto; }
@@ -95,6 +95,7 @@ h3 { font-size: 19px; margin: 10px 0; }
   .desktop-only { display: none; }
   .steps { grid-template-columns: 1fr; gap: 14px; }
   .actions { flex-direction: column; }
+  .actions > .button_to > .button { width: 100%; }
   .notice { padding: 22px; }
   .form-card { padding: 24px 20px; margin-top: 28px; }
 }

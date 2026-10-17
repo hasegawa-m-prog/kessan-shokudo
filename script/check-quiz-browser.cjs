@@ -79,7 +79,12 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
       }
       await page.setViewportSize({ width: 390, height: 844 });
       await page.getByLabel(industry, { exact: true }).check();
-      await page.getByRole('button', { name: '5問のクイズを始める' }).click();
+      const selectedIndustry = await page.locator('input[name="industry_id"]:checked').inputValue();
+      await page.getByRole('button', { name: '開始前の確認へ' }).click();
+      await page.getByRole('heading', { name: 'クイズを始めますか？' }).waitFor();
+      assert.equal(await page.locator('input[name="choice_id"]').count(), 0);
+      await checkWidth();
+      await page.getByRole('button', { name: 'ゲストで5問を始める' }).click();
       const questionChoices = new Set();
       for (let index = 1; index <= 5; index++) {
         const firstChoiceId = await page.locator('input[name="choice_id"]').first().inputValue();
@@ -115,10 +120,20 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
       assert.equal(await page.locator('.result-list li').count(), 5);
       await checkWidth();
       await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-result-mobile.png'), fullPage: false });
+      await page.getByRole('link', { name: '同じ業種に再挑戦', exact: true }).click();
+      assert.equal(await page.locator('input[name="industry_id"]').inputValue(), selectedIndustry);
+      await page.getByRole('link', { name: '業種を選び直す' }).click();
+      assert.equal(await page.locator('input[name="industry_id"]:checked').inputValue(), selectedIndustry);
     }
     if (publicData) assert.equal(verifiedCodes.size, 15);
     // 同じブラウザでも、登録・ログイン前のゲスト記録は引き継がれません。
-    await page.goto(`${baseUrl}/signup`);
+    await page.goto(`${baseUrl}/quiz/new`);
+    await page.getByLabel('小売業', { exact: true }).check();
+    await page.getByRole('button', { name: '開始前の確認へ' }).click();
+    const confirmationUrl = page.url();
+    await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-confirmation-mobile.png') });
+    await page.getByRole('link', { name: 'ログインして始める' }).click();
+    await page.getByRole('link', { name: '初めての方はユーザー登録' }).click();
     const email = `quiz-browser-${Date.now()}@example.com`;
     const password = randomBytes(24).toString('hex');
     await page.getByLabel('メールアドレス').fill(email);
@@ -128,6 +143,9 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     await page.getByLabel('メールアドレス').fill(email);
     await page.getByLabel('パスワード', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'ログインする' }).click();
+    await page.getByRole('heading', { name: 'クイズを始めますか？' }).waitFor();
+    assert.equal(page.url(), confirmationUrl);
+    await page.getByText('選んだ業種：小売業', { exact: true }).waitFor();
     if (productionSmoke) {
       const cookies = await page.context().cookies(baseUrl);
       const session = cookies.find(cookie => cookie.name === '_kessan_shokudo_session');
@@ -136,7 +154,9 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     }
     await page.goto(`${baseUrl}/quiz`);
     await page.waitForURL('**/quiz/new');
-    await page.getByLabel('小売業', { exact: true }).check();
+    await page.goto(`${baseUrl}/histories`);
+    assert.equal(await page.locator('.history-list li').count(), 0);
+    await page.goto(confirmationUrl);
     await page.getByRole('button', { name: '5問のクイズを始める' }).click();
     for (let index = 1; index <= 5; index++) {
       await page.locator('input[name="choice_id"]').last().check();
@@ -150,9 +170,14 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     await page.getByLabel('パスワード', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'ログインする' }).click();
     await page.getByRole('navigation').getByRole('link', { name: '回答履歴', exact: true }).click();
-    assert.equal(await page.locator('.history-list li').count(), 5);
+    assert.equal(await page.locator('.history-list li').count(), 1);
     await checkWidth();
+    const originalRunPath = await page.locator('.history-list h2 a').first().getAttribute('href');
     await page.locator('.history-list h2 a').first().click();
+    assert.equal(await page.locator('.run-question-list > li').count(), 5);
+    await checkWidth();
+    await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-run-mobile.png') });
+    await page.locator('.run-question-list h2 a').first().click();
     await page.getByRole('region', { name: '回答結果' }).waitFor();
     await page.getByRole('navigation').getByRole('link', { name: '復習', exact: true }).click();
     assert.equal(await page.locator('.history-list li').count(), 4);
@@ -163,7 +188,7 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     await page.getByRole('status').waitFor();
     await checkWidth();
     await page.getByRole('navigation').getByRole('link', { name: '回答履歴', exact: true }).click();
-    assert.equal(await page.locator('.history-list li').count(), 6);
+    assert.equal(await page.locator('.history-list li').count(), 2);
     await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-history-mobile.png'), fullPage: false });
     await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
     await page.goto(`${baseUrl}/histories/${originalAnswerId}`);
@@ -184,6 +209,8 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     const csrfToken = await page.locator('meta[name="csrf-token"]').getAttribute('content');
     const foreignRead = await page.context().request.get(`${baseUrl}/histories/${originalAnswerId}`);
     assert.equal(foreignRead.status(), 404);
+    const foreignRun = await page.context().request.get(`${baseUrl}${originalRunPath}`);
+    assert.equal(foreignRun.status(), 404);
     const foreignReview = await page.context().request.post(`${baseUrl}/review`, {
       form: { answer_id: originalAnswerId, authenticity_token: csrfToken },
       headers: { Origin: baseUrl }
@@ -193,7 +220,7 @@ const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON
     assert.equal(await page.locator('.history-list li').count(), 0);
     await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ result: 'passed', baseUrl, publicQuestionsVerified: verifiedCodes.size, guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmails: [email, otherEmail], checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'guest private access rejected', 'other member history and review rejected with 404', 'no browser or server errors'] }));
+    console.log(JSON.stringify({ result: 'passed', baseUrl, publicQuestionsVerified: verifiedCodes.size, guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmails: [email, otherEmail], checks: ['26 questions answered', 'start confirmation', 'industry retained through registration and login', 'same industry retry', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history grouped by learning run after re-login', 'separate review run saved', 'guest private access rejected', 'other member history, run and review rejected with 404', 'no browser or server errors'] }));
   } finally {
     await browser.close();
   }

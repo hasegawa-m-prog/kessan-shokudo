@@ -5,9 +5,11 @@ Rails.application.routes.draw do
   get "login", to: "sessions#new", as: :login
   resource :session, only: [ :create, :destroy ]
   resource :quiz, only: %i[new create show], controller: "quizzes" do
+    get :confirmation
     post :answer
     get :result
   end
+  resources :quiz_runs, only: :show, path: "histories/runs"
   resources :histories, only: %i[index show]
   get "reviews", to: "reviews#index"
   resource :review, only: %i[create show], controller: "reviews" do

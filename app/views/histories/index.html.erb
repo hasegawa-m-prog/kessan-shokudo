@@ -1,19 +1,18 @@
 <% content_for :title, "回答履歴｜決算食堂" %>
 <section class="learning">
   <h1>回答履歴</h1>
-  <p>ログイン後の回答を、新しい順に表示しています。</p>
+  <p>ログイン後の回答を学習回ごとにまとめ、開始日時の新しい順に表示しています。復習は1問ずつ別の記録として残ります。</p>
   <p><%= link_to "間違えた問題を復習する", reviews_path %></p>
-  <% if @answers.empty? %>
+  <% if @runs.empty? %>
     <p class="notice">このページに回答履歴はありません。クイズに回答するとここに残ります。</p>
   <% else %>
     <ol class="history-list">
-      <% @answers.each do |answer| %>
-        <% question = answer.quiz_run_question.question %>
+      <% @runs.each do |run| %>
         <li class="card">
-          <p class="note"><%= answer.answered_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間） · <%= question.industry.name %> · <%= answer.quiz_run_question.quiz_run.kind == "review" ? "復習" : "クイズ" %></p>
-          <h2><%= link_to question.title, history_path(answer) %></h2>
-          <p><%= answer.correct? ? "○ 正解" : "× 不正解" %> · あなたの回答：<%= answer.choice.body %></p>
-          <p class="note">問題の版：<%= question.version %></p>
+          <p class="note"><%= run.started_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間）</p>
+          <h2><%= link_to "#{run.industry&.name || 'おまかせ'} · #{run.kind == 'review' ? '1問復習' : '5問クイズ'}", quiz_run_path(run) %></h2>
+          <p><%= run.quiz_run_questions.size %>問中 <%= run.correct_count %>問正解 · <%= run.answered_entries.size %>問回答済み</p>
+          <p class="note"><%= run.completed_at ? "完了" : "未完了（回答済みの内容を表示できます）" %></p>
         </li>
       <% end %>
     </ol>
