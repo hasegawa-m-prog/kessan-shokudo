@@ -236,7 +236,7 @@
 - [x] 全15問の実画面の金額・割合・左右配置・縮尺と、原稿・登録データ・正解・解説を自動照合した
 - [x] 代表3問（R1・M4・S5）を目視し、説明文の長さに左右されず2つの図がそろうよう修正した
 - [x] R3の解説を「借入は売上や利益ではなく、この取引では純資産は変わりません」と明確化し、再度数値を確認した
-- [ ] 問題ごとの参考資料・確認結果をIssue #35〜#37に記録した
+- [x] 問題ごとの参考資料・確認結果を記録した：[小売業 #35](https://github.com/hasegawa-m-prog/kessan-shokudo/issues/35#issuecomment-6232206757)、[製造業 #36](https://github.com/hasegawa-m-prog/kessan-shokudo/issues/36#issuecomment-6232207083)、[サービス業 #37](https://github.com/hasegawa-m-prog/kessan-shokudo/issues/37#issuecomment-6232207466)
 
 既存の動作確認用問題は出題を終了し、過去の問題と回答は残します。公開環境への反映とRUNTEQ提出は別に確認します。
 
