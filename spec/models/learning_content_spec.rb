@@ -24,6 +24,7 @@ RSpec.describe "Learning content publication", type: :model do
       expect(question.choices.count(&:is_correct)).to eq(1)
       expect(question.balance_sheets.size).to eq(2)
       expect(question.balance_sheets).to all(be_balanced)
+      expect(question.balance_sheets.flat_map { |sheet| sheet.balance_sheet_items.map { |item| item.account.name } }).not_to include("出資金")
     end
     expect { DemoLearningContent.load! }.not_to change(Question, :count)
   end

@@ -1,6 +1,7 @@
 # 画面・保存処理の動作確認専用。公開教材として扱わない。
 class DemoLearningContent
-  ACCOUNTS = { "現金" => "asset", "在庫" => "asset", "設備" => "asset", "借入金" => "liability", "出資金" => "equity" }.freeze
+  VERSION = 2
+  ACCOUNTS = { "現金" => "asset", "在庫" => "asset", "設備" => "asset", "借入金" => "liability", "資本金" => "equity" }.freeze
   BASE = [ 500, 200, 300, 400, 600 ].freeze
 
   def self.load!
@@ -11,8 +12,9 @@ class DemoLearningContent
         industry = Industry.find_or_create_by!(name: name)
         examples.each_with_index do |example, index|
           code = "demo-#{industry_index + 1}-#{index + 1}"
-          next if Question.exists?(code: code, version: 1)
-          question = Question.create!(industry: industry, code: code, version: 1, kind: example[:kind],
+          next if Question.exists?(code: code, version: VERSION)
+          Question.available.where(code: code).find_each(&:retire!)
+          question = Question.create!(industry: industry, code: code, version: VERSION, kind: example[:kind],
             title: "【動作確認用】#{example[:title]}", body: example[:body],
             assumptions: "架空の単純化した事例です。税金・手数料・減価償却は考慮しません。業種の一般的な構成を示すものではありません。公開教材としての確認は未完了です。",
             explanation: example[:explanation])
