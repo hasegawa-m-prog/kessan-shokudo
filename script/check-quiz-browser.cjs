@@ -1,11 +1,13 @@
-// ローカル専用。quiz:seed_public後は --public を付ける。架空の会員を1件作ります。
+// 公開用問題は --public。本番確認は --production-smoke を明示し、確認済みの公開先だけに接続します。
+// 架空の会員を2件作り、回答6件をテスト記録として残します。
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
-const baseUrl = 'http://127.0.0.1:3000';
-const publicData = process.argv.includes('--public') ? JSON.parse(readFileSync(path.join(__dirname, '../db/data/questions_v1.json'), 'utf8')) : null;
+const productionSmoke = process.argv.includes('--production-smoke');
+const baseUrl = productionSmoke ? 'https://kessan-shokudo.onrender.com' : 'http://127.0.0.1:3000';
+const publicData = (productionSmoke || process.argv.includes('--public')) ? JSON.parse(readFileSync(path.join(__dirname, '../db/data/questions_v1.json'), 'utf8')) : null;
 
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -126,6 +128,12 @@ const publicData = process.argv.includes('--public') ? JSON.parse(readFileSync(p
     await page.getByLabel('メールアドレス').fill(email);
     await page.getByLabel('パスワード', { exact: true }).fill(password);
     await page.getByRole('button', { name: 'ログインする' }).click();
+    if (productionSmoke) {
+      const cookies = await page.context().cookies(baseUrl);
+      const session = cookies.find(cookie => cookie.name === '_kessan_shokudo_session');
+      assert(session, 'セッションCookieがありません');
+      assert(session.secure && session.httpOnly && session.sameSite === 'Lax', '本番Cookieの保護設定が不一致');
+    }
     await page.goto(`${baseUrl}/quiz`);
     await page.waitForURL('**/quiz/new');
     await page.getByLabel('小売業', { exact: true }).check();
@@ -148,6 +156,7 @@ const publicData = process.argv.includes('--public') ? JSON.parse(readFileSync(p
     await page.getByRole('region', { name: '回答結果' }).waitFor();
     await page.getByRole('navigation').getByRole('link', { name: '復習', exact: true }).click();
     assert.equal(await page.locator('.history-list li').count(), 4);
+    const originalAnswerId = await page.locator('input[name="answer_id"]').first().inputValue();
     await page.getByRole('button', { name: 'この問題を復習する', exact: true }).first().click();
     await page.locator('input[name="choice_id"]').first().check();
     await page.getByRole('button', { name: '回答する', exact: true }).click();
@@ -157,8 +166,34 @@ const publicData = process.argv.includes('--public') ? JSON.parse(readFileSync(p
     assert.equal(await page.locator('.history-list li').count(), 6);
     await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-history-mobile.png'), fullPage: false });
     await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
+    await page.goto(`${baseUrl}/histories/${originalAnswerId}`);
+    await page.waitForURL('**/login');
+    // 自分たちが作ったテスト履歴だけを使い、別会員からの参照・復習を拒否することを確認。
+    const otherEmail = `quiz-access-${Date.now()}@example.com`;
+    const otherPassword = randomBytes(24).toString('hex');
+    await page.goto(`${baseUrl}/signup`);
+    await page.getByLabel('メールアドレス').fill(otherEmail);
+    await page.getByLabel('パスワード（12文字以上）', { exact: true }).fill(otherPassword);
+    await page.getByLabel('確認用パスワード', { exact: true }).fill(otherPassword);
+    await page.getByRole('button', { name: '登録する', exact: true }).click();
+    await page.getByLabel('メールアドレス').fill(otherEmail);
+    await page.getByLabel('パスワード', { exact: true }).fill(otherPassword);
+    await page.getByRole('button', { name: 'ログインする' }).click();
+    await page.goto(`${baseUrl}/histories`);
+    assert.equal(await page.locator('.history-list li').count(), 0);
+    const csrfToken = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    const foreignRead = await page.context().request.get(`${baseUrl}/histories/${originalAnswerId}`);
+    assert.equal(foreignRead.status(), 404);
+    const foreignReview = await page.context().request.post(`${baseUrl}/review`, {
+      form: { answer_id: originalAnswerId, authenticity_token: csrfToken },
+      headers: { Origin: baseUrl }
+    });
+    assert.equal(foreignReview.status(), 404);
+    await page.reload();
+    assert.equal(await page.locator('.history-list li').count(), 0);
+    await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ result: 'passed', publicQuestionsVerified: verifiedCodes.size, guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmail: email, checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'no browser or server errors'] }));
+    console.log(JSON.stringify({ result: 'passed', baseUrl, publicQuestionsVerified: verifiedCodes.size, guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmails: [email, otherEmail], checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'guest private access rejected', 'other member history and review rejected with 404', 'no browser or server errors'] }));
   } finally {
     await browser.close();
   }
