@@ -65,7 +65,7 @@ h3 { font-size: 19px; margin: 10px 0; }
 .choice-list label { display: flex; align-items: baseline; gap: 12px; background: white; border: 1px solid #8b9a8d; border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; }
 .choice-list input { flex: 0 0 auto; accent-color: var(--accent); }
 .diagrams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-.balance-sheet { padding: 20px; }
+.balance-sheet { padding: 20px; display: grid; grid-template-rows: subgrid; grid-row: span 4; row-gap: 0; }
 .balance-sheet svg { width: 100%; display: block; margin-top: 16px; font-size: 11px; }
 .segment { stroke: white; stroke-width: 1; }
 .segment.asset { fill: #b4d8ed; }
@@ -86,6 +86,7 @@ h3 { font-size: 19px; margin: 10px 0; }
 .history-list h2 { margin: 10px 0; font-size: 20px; }
 @media (max-width: 640px) {
   .diagrams { grid-template-columns: 1fr; }
+  .balance-sheet { display: block; grid-row: auto; }
   .site-header { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
   .brand { font-size: 20px; }
   nav { gap: 18px; }

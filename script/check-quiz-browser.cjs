@@ -1,9 +1,11 @@
-// ローカル専用。quiz:seed_demoの登録後に実行します。架空の会員を1件作ります。
+// ローカル専用。quiz:seed_public後は --public を付ける。架空の会員を1件作ります。
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
+const { readFileSync } = require('node:fs');
 const path = require('node:path');
 const baseUrl = 'http://127.0.0.1:3000';
+const publicData = process.argv.includes('--public') ? JSON.parse(readFileSync(path.join(__dirname, '../db/data/questions_v1.json'), 'utf8')) : null;
 
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -12,6 +14,60 @@ const baseUrl = 'http://127.0.0.1:3000';
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.status() >= 500) errors.push(`${response.status()} ${response.url()}`); });
   const checkWidth = async () => assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `横はみ出し: ${page.url()}`);
+  const verifiedCodes = new Set();
+  const verifyPublicDiagrams = async () => {
+    if (!publicData) return;
+    const title = await page.locator('.learning h1').innerText();
+    const question = publicData.questions.find(question => question.title === title);
+    assert(question, `公開原稿にない問題: ${title}`);
+    const cards = page.locator('.balance-sheet');
+    const maximum = Math.max(...question.sheets.map(sheet => sheet.amounts.slice(0, 3).reduce((a, b) => a + b, 0)));
+    for (let index = 0; index < 2; index++) {
+      const sheet = question.sheets[index];
+      const card = cards.nth(index);
+      assert((await card.locator('h3').innerText()).includes(sheet.company_name));
+      const rects = await card.locator('rect').evaluateAll(nodes => nodes.map(node => ({
+        title: node.querySelector('title').textContent, category: node.getAttribute('class'),
+        x: Number(node.getAttribute('x')), height: Number(node.getAttribute('height'))
+      })));
+      assert.equal(rects.length, 5);
+      const total = sheet.amounts.slice(0, 3).reduce((a, b) => a + b, 0);
+      for (let accountIndex = 0; accountIndex < 5; accountIndex++) {
+        const account = publicData.accounts[accountIndex];
+        const amount = sheet.amounts[accountIndex];
+        const formatted = `${amount.toLocaleString('en-US')}円`;
+        const rect = rects.find(rect => rect.title === `${account.name}：${formatted}`);
+        assert(rect, `${question.code}: ${account.name}の金額不一致`);
+        assert(rect.category.includes(account.category));
+        assert.equal(rect.x, account.category === 'asset' ? 10 : 170);
+        assert(Math.abs(rect.height - amount / maximum * 180) < 0.00001);
+        const row = card.locator('.amount-list > div').filter({ has: page.locator('dt', { hasText: account.name }) });
+        const text = await row.innerText();
+        assert(text.includes(formatted));
+        assert(text.includes(`${(amount / total * 100).toFixed(1)}%`));
+      }
+      assert.deepEqual(await card.locator('svg > text[y="234"]').allTextContents(), Array(2).fill(`合計 ${total.toLocaleString('en-US')}円`));
+    }
+    for (const width of [375, 390, 768, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await checkWidth();
+      if (width > 640) {
+        const boxes = await cards.locator('svg').evaluateAll(nodes => nodes.map(node => {
+          const box = node.getBoundingClientRect();
+          return { y: box.y, width: box.width, height: box.height };
+        }));
+        for (const dimension of ['y', 'width', 'height']) {
+          assert(Math.abs(boxes[0][dimension] - boxes[1][dimension]) < 1, `${question.code}: BSの表示位置・縮尺が不一致`);
+        }
+      }
+    }
+    if (['bs-r1', 'bs-m4', 'bs-s5'].includes(question.code)) {
+      await page.locator('.diagrams').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(__dirname, `../tmp/public-${question.code}-desktop.png`) });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    verifiedCodes.add(question.code);
+  };
   try {
     for (const industry of [ '小売業', '製造業', 'サービス業', 'おまかせ（全業種から出題）' ]) {
       await page.goto(`${baseUrl}/quiz/new`);
@@ -39,6 +95,7 @@ const baseUrl = 'http://127.0.0.1:3000';
         await page.getByRole('button', { name: '回答する', exact: true }).click();
         await page.getByRole('region', { name: '回答結果' }).waitFor();
         assert.equal(await page.locator('.balance-sheet').count(), 2);
+        await verifyPublicDiagrams();
         await checkWidth();
         if (industry === '小売業' && index === 1) {
           await page.locator('.diagrams').scrollIntoViewIfNeeded();
@@ -57,6 +114,7 @@ const baseUrl = 'http://127.0.0.1:3000';
       await checkWidth();
       await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-result-mobile.png'), fullPage: false });
     }
+    if (publicData) assert.equal(verifiedCodes.size, 15);
     // 同じブラウザでも、登録・ログイン前のゲスト記録は引き継がれません。
     await page.goto(`${baseUrl}/signup`);
     const email = `quiz-browser-${Date.now()}@example.com`;
@@ -100,7 +158,7 @@ const baseUrl = 'http://127.0.0.1:3000';
     await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-history-mobile.png'), fullPage: false });
     await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ result: 'passed', guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmail: email, checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'no browser or server errors'] }));
+    console.log(JSON.stringify({ result: 'passed', publicQuestionsVerified: verifiedCodes.size, guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmail: email, checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'no browser or server errors'] }));
   } finally {
     await browser.close();
   }
