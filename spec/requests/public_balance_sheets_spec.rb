@@ -7,6 +7,7 @@ RSpec.describe "Public BS rendering", type: :request do
   def verify_diagrams(question, sheets)
     html = Nokogiri::HTML(response.body)
     cards = html.css(".balance-sheet")
+    expect(response.body).to include("小数第1位に丸めるため")
     expect(cards.size).to eq(sheets.size)
     maximum = sheets.map { |sheet| sheet.total("asset") }.max
     cards.zip(sheets).each do |card, sheet|

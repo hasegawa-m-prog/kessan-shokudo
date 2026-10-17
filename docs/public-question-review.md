@@ -266,3 +266,4 @@
 確認用コマンド：`bundle exec rspec spec/models/public_question_draft_spec.rb spec/models/public_learning_content_spec.rb spec/requests/public_balance_sheets_spec.rb`。
 実ブラウザの通し確認：`node script/check-quiz-browser.cjs --public`（ローカルのみ）。
 原稿の万円を登録時に円へ変換し、アプリ表示も円に統一しています。割合の分母は各社・各時点の資産合計です。
+割合は小数第1位への丸めにより合計99.9%などになる場合があるため、画面に注記しています。BSの金額合計そのものは丸めていません。
