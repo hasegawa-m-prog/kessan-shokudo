@@ -1,0 +1,52 @@
+<% content_for :title, "#{@position}問目｜決算食堂" %>
+<section class="learning">
+  <p class="eyebrow"><%= @attempt.industry_name %> · <%= @position %> / 5問</p>
+  <h1><%= @question.title %></h1>
+  <p class="question-body"><%= @question.body %></p>
+  <aside class="assumptions"><h2>この問題の条件</h2><p><%= @question.assumptions %></p></aside>
+  <% if @selected_choice %>
+    <section class="feedback" aria-label="回答結果">
+      <h2><%= @selected_choice.is_correct ? "○ 正解です" : "× 不正解です" %></h2>
+      <p>あなたの回答：<%= @selected_choice.body %></p>
+      <p>正解：<%= @question.correct_choice.body %></p>
+      <h3>なぜそうなる？</h3><p class="explanation"><%= @question.explanation %></p>
+    </section>
+  <% end %>
+  <section aria-label="BSの図解">
+    <h2><%= @question.kind == "transaction" ? "取引によるBSの変化" : "2社のBSを見比べる" %></h2>
+    <p class="note">単位：円。表示中の図は同じ金額に同じ高さを使用しています。割合は各社の資産合計に対する値です。</p>
+    <div class="diagrams">
+      <% @visible_sheets.each do |sheet| %>
+        <%= render "balance_sheet", sheet: sheet, maximum: @maximum, transaction: @question.kind == "transaction" %>
+      <% end %>
+    </div>
+    <% if @selected_choice && @question.kind == "transaction" %>
+      <div class="changes"><h3>増減を文字で確認</h3>
+        <ul><% transaction_changes(@sheets).each do |change| %><li><%= change %></li><% end %></ul>
+        <p>資産合計：<%= yen(@sheets.first.total("asset")) %> → <%= yen(@sheets.last.total("asset")) %></p>
+      </div>
+    <% end %>
+  </section>
+  <% if @selected_choice %>
+    <div class="actions">
+      <% if @position == 5 %>
+        <%= link_to "5問の結果を見る", result_quiz_path, class: "button primary" %>
+      <% else %>
+        <%= link_to "次の問題へ", quiz_path(position: @position + 1), class: "button primary" %>
+      <% end %>
+    </div>
+  <% else %>
+    <%= form_with url: answer_quiz_path do |form| %>
+      <%= form.hidden_field :position, value: @position %>
+      <%= form.hidden_field :attempt_token, value: @attempt.token %>
+      <fieldset class="choice-list">
+        <legend>答えを1つ選んでください</legend>
+        <% @question.choices.each do |choice| %>
+          <label><%= form.radio_button :choice_id, choice.id, required: true %> <%= choice.body %></label>
+        <% end %>
+      </fieldset>
+      <%= form.submit "回答する", class: "button primary" %>
+    <% end %>
+  <% end %>
+  <p class="note">架空の学習用データです。業種全体・実在企業の評価ではありません。</p>
+</section>

@@ -1,0 +1,14 @@
+<% content_for :title, "5問の結果｜決算食堂" %>
+<section class="learning">
+  <div class="eyebrow"><%= @attempt.industry_name %> · 学習結果</div>
+  <h1>5問、おつかれさまでした。</h1>
+  <p class="score">5問中 <strong><%= @attempt.correct_count %>問</strong> 正解</p>
+  <p>正解数だけでなく、「なぜそうなるか」を説明できるか振り返ってみましょう。</p>
+  <ol class="result-list">
+    <% @attempt.questions.each_with_index do |question, index| %>
+      <li><span><%= @attempt.selected_choice(index).is_correct ? "○ 正解" : "× 不正解" %></span> <%= link_to question.title, quiz_path(position: index + 1) %></li>
+    <% end %>
+  </ol>
+  <%= render "save_notice" %>
+  <div class="actions"><%= link_to "業種を選んでもう一度", new_quiz_path, class: "button primary" %><%= link_to "TOPへ戻る", root_path, class: "button secondary" %></div>
+</section>

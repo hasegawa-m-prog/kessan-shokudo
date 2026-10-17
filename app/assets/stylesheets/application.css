@@ -52,7 +52,38 @@ h3 { font-size: 19px; margin: 10px 0; }
 .flash p { margin: 0; }
 .skip-link { position: absolute; top: -100px; padding: 10px; background: white; }
 .skip-link:focus { top: 0; z-index: 10; }
+.learning { max-width: 880px; margin: 40px auto 0; }
+.learning h1 { font-size: clamp(24px, 4vw, 36px); }
+.learning h2 { font-size: 21px; margin-top: 24px; }
+.question-body, .explanation { white-space: pre-line; }
+.compact { margin: 22px 0; padding: 16px 22px; }
+.assumptions { padding: 16px 22px; background: #f1efe5; border-radius: 8px; margin-bottom: 28px; }
+.assumptions h2 { font-size: 16px; margin: 0; }
+.assumptions p { margin-bottom: 0; }
+.choice-list { border: 0; padding: 0; margin: 26px 0; }
+.choice-list legend { font-weight: 700; margin-bottom: 12px; }
+.choice-list label { display: flex; align-items: baseline; gap: 12px; background: white; border: 1px solid #8b9a8d; border-radius: 8px; padding: 16px; margin-bottom: 12px; cursor: pointer; }
+.choice-list input { flex: 0 0 auto; accent-color: var(--accent); }
+.diagrams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.balance-sheet { padding: 20px; }
+.balance-sheet svg { width: 100%; display: block; margin-top: 16px; font-size: 11px; }
+.segment { stroke: white; stroke-width: 1; }
+.segment.asset { fill: #b4d8ed; }
+.segment.liability { fill: #f8d49b; }
+.segment.equity { fill: #bbd9be; }
+.segment-label { font-size: 12px; fill: #18291f; }
+.amount-list { font-size: 13px; margin-bottom: 0; }
+.amount-list > div { border-top: 1px solid var(--line); padding: 9px 0; }
+.amount-list dd { margin-left: 0; font-weight: 600; }
+.amount-list dd span, .category { color: var(--muted); font-weight: 400; }
+.feedback { background: #edf1e9; border: 1px solid #8b9a8d; border-radius: 10px; padding: 22px; margin: 24px 0; }
+.feedback h2 { margin-top: 0; }
+.score { font-size: 23px; }
+.result-list { padding-left: 24px; }
+.result-list li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.result-list span { display: block; font-size: 14px; }
 @media (max-width: 640px) {
+  .diagrams { grid-template-columns: 1fr; }
   .site-header { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }
   .brand { font-size: 20px; }
   nav { gap: 18px; }
