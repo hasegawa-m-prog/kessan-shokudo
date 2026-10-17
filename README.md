@@ -238,3 +238,69 @@ AIを下書きに使う場合も、数値・正解・解説を確認してから
 ## 11. 画面遷移図
 
 [Figmaで画面遷移図を見る](https://www.figma.com/design/tKySau3S8AUplsdx7pvJUd?node-id=40-2)
+
+## 開発環境と起動手順
+
+ここからは実装用の手順です。上記の企画・MVP範囲は変更していません。
+
+- Ruby 3.4.11 / Rails 8.1.4 / PostgreSQL 17
+- ERB・CSSによる画面、RSpec・FactoryBotによるテスト
+- 現在はTOPページ・ユーザー登録・ログイン・ログアウトまでの開発段階です。
+- クイズ・BS図解・回答履歴・復習・公開用15問は未実装です。MVPリリース完了ではありません。
+- 公開URLはまだありません。`localhost`のURLは提出に使いません。
+
+### Macで準備する
+
+Homebrewがある環境では、次のコマンドで必要なソフトを用意できます。
+
+```sh
+brew install ruby@3.4 postgresql@17
+```
+
+Apple SiliconのMacでは、ターミナルを開くたびに次の設定を行います。
+システム標準の古いRubyではなく、開発用のRubyを使うための設定です。
+
+```sh
+export PATH="/opt/homebrew/opt/ruby@3.4/bin:/opt/homebrew/lib/ruby/gems/3.4.0/bin:/opt/homebrew/opt/postgresql@17/bin:$PATH"
+ruby -v
+```
+
+`ruby -v`の結果が3.4.11と異なる場合は、Gemfileと異なるバージョンのまま作業せず、使用バージョンを確認してください。
+
+PostgreSQLを起動します。すでに動いている場合は、起動し直す必要はありません。
+
+```sh
+pg_ctl -D /opt/homebrew/var/postgresql@17 -l /opt/homebrew/var/postgresql@17/server.log -o '-h 127.0.0.1 -p 5432' start
+```
+
+このREADMEがあるフォルダーで次を実行します。
+
+```sh
+bundle install
+bin/rails db:prepare
+bin/rails server -b 127.0.0.1
+```
+
+ブラウザで `http://127.0.0.1:3000` を開きます。終了はターミナルで `Control + C` です。
+`db:prepare`は、開発用とテスト用の保存場所を用意するコマンドです。本番DBの接続情報を設定した状態で実行しないでください。
+
+### テストとコードの確認
+
+```sh
+bundle exec rspec
+bin/rubocop
+bin/brakeman --quiet --no-pager
+bin/bundler-audit
+```
+
+RSpecは動作、RuboCopはコードの書き方、Brakemanとbundler-auditはセキュリティ上の既知の問題を確認します。
+RSpec実行後は `coverage/index.html` でテストが通ったコードの範囲を確認できます。数値が高くても、すべての動作が正しい保証にはなりません。
+GitHub ActionsでもPRの作成・更新時にこれらを実行する設定を用意しています。GitHub上での実行は未確認です。
+
+### 設計・公開準備
+
+- [ER設計のテーブル定義](https://github.com/hasegawa-m-prog/kessan-shokudo/pull/3)
+- [実装状況と要件の対応](docs/implementation-status.md)
+- [Renderへの初回公開手順と注意点](docs/deployment.md)
+
+秘密情報は環境変数で設定します。`config/master.key`、`.env`、本番のDB接続URLはGitHubに登録しません。

@@ -1,0 +1,22 @@
+<% content_for :title, "決算食堂（仮）｜図で学ぶ、会社の数字" %>
+<section class="hero">
+  <div class="eyebrow">会計のはじめの一歩</div>
+  <h1>会社の数字を、<br>わかる楽しさに。</h1>
+  <p class="lead">関心のある業種を入口に、架空の会社のBS（貸借対照表）を見比べる。<br class="desktop-only">3択クイズと図解で、数字の意味を少しずつ学びましょう。</p>
+  <div class="actions">
+    <button class="button primary" disabled>クイズを始める（準備中）</button>
+    <% unless current_user %>
+      <%= link_to "ユーザー登録", signup_path, class: "button secondary" %>
+    <% end %>
+  </div>
+  <p class="note">現在は開発中です。クイズ・回答履歴・復習は、これから実装します。</p>
+</section>
+<section aria-labelledby="how-heading">
+  <h2 id="how-heading">決算食堂での学び方</h2>
+  <div class="steps">
+    <article class="card"><span class="step">01</span><h3>気になる業種を選ぶ</h3><p>小売業・製造業・サービス業から選択。「おまかせ」なら業種を横断して学べます。</p></article>
+    <article class="card"><span class="step">02</span><h3>5問のクイズで考える</h3><p>会社同士の違いや取引前後の変化を、3つの選択肢から考えます。</p></article>
+    <article class="card"><span class="step">03</span><h3>図解で理由を確かめる</h3><p>正解だけでなく「なぜそうなるか」を確認。会員は履歴から間違えた問題を復習できます。</p></article>
+  </div>
+</section>
+<aside class="notice"><h2>まずは、登録なしで試せる学習体験へ</h2><p>完成後はゲストでも5問を試せます。ゲストの回答は履歴に保存されません。履歴を残したい場合は、クイズを始める前にログインしてください。</p><p>題材はすべて架空の学習用データです。業種全体や実在企業の評価を表すものではありません。</p></aside>
