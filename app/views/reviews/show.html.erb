@@ -1,0 +1,19 @@
+<% content_for :title, "1問の復習｜決算食堂" %>
+<section class="learning">
+  <p class="eyebrow">1問の復習 · <%= @attempt.industry_name %></p>
+  <h1><%= @question.title %></h1>
+  <p class="question-body"><%= @question.body %></p>
+  <aside class="assumptions"><h2>この問題の条件</h2><p><%= @question.assumptions %></p></aside>
+  <% if @selected_choice %><%= render "quizzes/feedback" %><p role="status">復習の回答を保存しました。元の回答も履歴に残っています。</p><% end %>
+  <%= render "quizzes/diagrams" %>
+  <% unless @selected_choice %>
+    <%= form_with url: answer_review_path do |form| %>
+      <%= form.hidden_field :attempt_token, value: @attempt.token %>
+      <fieldset class="choice-list"><legend>答えを1つ選んでください</legend>
+        <% @question.choices.each do |choice| %><label><%= form.radio_button :choice_id, choice.id, required: true %> <%= choice.body %></label><% end %>
+      </fieldset>
+      <%= form.submit "回答する", class: "button primary" %>
+    <% end %>
+  <% end %>
+  <div class="actions"><%= link_to "間違えた問題一覧へ", reviews_path, class: "button secondary" %><%= link_to "回答履歴へ", histories_path %></div>
+</section>

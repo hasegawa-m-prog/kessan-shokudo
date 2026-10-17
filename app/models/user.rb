@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  has_many :quiz_runs, dependent: :restrict_with_error
+  has_many :answers, through: :quiz_runs
   has_secure_password
   normalizes :email, with: ->(email) { email.strip.downcase }
 

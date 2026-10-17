@@ -1,0 +1,19 @@
+<% content_for :title, "業種を選ぶ｜決算食堂" %>
+<section class="learning">
+  <div class="eyebrow">5問で、会社の数字にふれる</div>
+  <h1>学びたい業種を選ぶ</h1>
+  <p>仕事で身近な業種でも、気になる業種でも。すべて架空の会社を題材にした3択クイズです。</p>
+  <%= render "save_notice" %>
+  <%= form_with url: confirmation_quiz_path, method: :get do |form| %>
+    <fieldset class="choice-list">
+      <legend>業種（1つ選択）</legend>
+      <% @industries.each do |industry| %>
+        <label><%= form.radio_button :industry_id, industry.id, required: true, checked: @selection&.key == industry.id.to_s %> <%= industry.name %></label>
+      <% end %>
+      <label><%= form.radio_button :industry_id, "random", required: true, checked: @selection&.key == "random" %> おまかせ（全業種から出題）</label>
+    </fieldset>
+    <%= form.submit "開始前の確認へ", name: nil, class: "button primary" %>
+  <% end %>
+  <p class="note">学習の有効時間は開始から2時間です。新しく始めると、途中の学習には戻れません。問題が5問未満の業種は開始できません。</p>
+  <%= link_to "TOPへ戻る", root_path %>
+</section>

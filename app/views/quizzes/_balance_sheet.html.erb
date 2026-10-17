@@ -1,0 +1,27 @@
+<article class="card balance-sheet" data-sheet-position="<%= sheet.position %>">
+  <h3><%= sheet.company_name %><% if transaction %>（<%= sheet.position == 1 ? "取引前" : "取引後" %>）<% end %></h3>
+  <p><%= sheet.business_description %></p>
+  <svg viewBox="0 0 320 245" role="img" aria-labelledby="diagram-title-<%= sheet.id %>">
+    <title id="diagram-title-<%= sheet.id %>"><%= sheet.company_name %>のBS。詳しい金額と割合は直後の一覧に記載。</title>
+    <text x="75" y="20" text-anchor="middle">資産</text>
+    <text x="235" y="20" text-anchor="middle">負債・純資産</text>
+    <% [ :assets, :financing ].each_with_index do |side, index| %>
+      <% sheet_segments(sheet, side, maximum).each do |segment| %>
+        <rect x="<%= 10 + index * 160 %>" y="<%= segment[:y] %>" width="130" height="<%= segment[:height] %>" class="segment <%= segment[:category] %>">
+          <title><%= segment[:item].account.name %>：<%= yen(segment[:item].amount) %></title>
+        </rect>
+        <% if segment[:height] >= 20 %>
+          <text x="<%= 75 + index * 160 %>" y="<%= segment[:y] + segment[:height] / 2 + 5 %>" text-anchor="middle" class="segment-label"><%= segment[:item].account.name %></text>
+        <% end %>
+      <% end %>
+    <% end %>
+    <text x="75" y="234" text-anchor="middle">合計 <%= yen(sheet.total("asset")) %></text>
+    <text x="235" y="234" text-anchor="middle">合計 <%= yen(sheet.total("liability") + sheet.total("equity")) %></text>
+  </svg>
+  <dl class="amount-list">
+    <% sheet.balance_sheet_items.sort_by { |item| [ QuizzesHelper::CATEGORY_LABELS.keys.index(item.account.category), item.account_id ] }.each do |item| %>
+      <div><dt><span class="category"><%= QuizzesHelper::CATEGORY_LABELS.fetch(item.account.category) %></span> <%= item.account.name %></dt>
+      <dd><%= yen(item.amount) %> <span>（<%= asset_percentage(item.amount, sheet) %>）</span></dd></div>
+    <% end %>
+  </dl>
+</article>

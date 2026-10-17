@@ -1,0 +1,24 @@
+<% content_for :title, "学習回の詳細｜決算食堂" %>
+<section class="learning">
+  <p><%= link_to "回答履歴へ戻る", histories_path %></p>
+  <h1><%= @run.industry&.name || "おまかせ" %> · <%= @run.kind == "review" ? "1問復習" : "5問クイズ" %></h1>
+  <p class="note">開始日時：<%= @run.started_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間）</p>
+  <p class="score"><%= @run.quiz_run_questions.size %>問中 <strong><%= @run.correct_count %>問</strong> 正解</p>
+  <% unless @run.completed_at %><p class="notice">この回は未完了です。未回答の問題は採点していません。</p><% end %>
+  <ol class="run-question-list">
+    <% @run.quiz_run_questions.each do |entry| %>
+      <li class="card">
+        <% if entry.answer %>
+          <h2><%= entry.position %>問目：<%= link_to entry.question.title, history_path(entry.answer) %></h2>
+          <p><%= entry.answer.correct? ? "○ 正解" : "× 不正解" %> · あなたの回答：<%= entry.answer.choice.body %></p>
+          <p class="note">回答日時：<%= entry.answer.answered_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間） · 問題の版：<%= entry.question.version %></p>
+          <% if @reviewable_answer_ids.include?(entry.answer.id) %><%= button_to "この問題を復習する", review_path, params: { answer_id: entry.answer.id }, class: "button secondary" %><% end %>
+        <% else %>
+          <h2><%= entry.position %>問目：未回答</h2>
+          <p class="note">回答・正解・解説はありません。</p>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+  <div class="actions"><%= link_to "クイズを始める", new_quiz_path, class: "button primary" %></div>
+</section>

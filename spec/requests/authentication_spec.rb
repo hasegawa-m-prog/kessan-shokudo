@@ -4,7 +4,7 @@ RSpec.describe "Account access", type: :request do
   it "renders the home page with working registration and login links" do
     get root_path
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include("決算食堂", 'href="/signup"', 'href="/login"', "準備中")
+    expect(response.body).to include("決算食堂", 'href="/signup"', 'href="/login"', 'href="/quiz/new"', "1回5問")
     expect(response.headers["Cache-Control"]).to include("no-store")
   end
 

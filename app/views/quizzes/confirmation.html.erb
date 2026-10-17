@@ -1,0 +1,17 @@
+<% content_for :title, "開始前の確認｜決算食堂" %>
+<section class="learning">
+  <div class="eyebrow">選んだ業種：<%= @selection.name %></div>
+  <h1>クイズを始めますか？</h1>
+  <p>全5問の3択クイズです。回答後にBSの図と解説を確認できます。</p>
+  <% if current_user %>
+    <p class="notice">ログイン中です。これからの回答は履歴に保存され、間違えた問題を復習できます。</p>
+  <% else %>
+    <p class="notice">ゲストの回答は履歴に保存されません。登録後にも引き継がれないため、履歴を残す場合は開始前にログインしてください。</p>
+  <% end %>
+  <div class="actions">
+    <%= button_to(current_user ? "5問のクイズを始める" : "ゲストで5問を始める", quiz_path, params: { industry_id: @selection.key }, class: "button primary") %>
+    <% unless current_user %><%= link_to "ログインして始める", login_path(quiz_industry: @selection.key), class: "button secondary" %><% end %>
+  </div>
+  <p class="note">学習の有効時間は開始から2時間です。開始すると、それまでの学習画面には戻れません。会員の保存済み回答は履歴に残ります。</p>
+  <%= link_to "業種を選び直す", new_quiz_path(industry_id: @selection.key) %>
+</section>

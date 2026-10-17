@@ -1,0 +1,7 @@
+<aside class="notice compact">
+  <% if current_user %>
+    <p>ログイン中の回答は保存されます。<%= link_to "回答履歴", histories_path %>で見返し、間違えた問題を復習できます。</p>
+  <% else %>
+    <p>ゲストの回答は履歴に保存されません。履歴を残す場合は、開始前に<%= link_to "ログイン", login_path %>してください。登録後にゲストの回答を引き継ぐことはできません。</p>
+  <% end %>
+</aside>

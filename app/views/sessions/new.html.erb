@@ -1,12 +1,14 @@
 <% content_for :title, "ログイン｜決算食堂" %>
 <section class="form-card">
   <h1>ログイン</h1>
+  <% if @quiz_selection %><p><%= @quiz_selection.name %>を選択中です。ログイン後、開始確認画面へ戻ります。</p><% end %>
   <%= form_with scope: :user, url: session_path do |form| %>
+    <%= hidden_field_tag :quiz_industry, @quiz_selection.key if @quiz_selection %>
     <%= form.label :email, "メールアドレス" %>
     <%= form.email_field :email, required: true, autocomplete: "email", value: params.dig(:user, :email) %>
     <%= form.label :password, "パスワード" %>
     <%= form.password_field :password, required: true, autocomplete: "current-password" %>
     <%= form.submit "ログインする", class: "button primary" %>
   <% end %>
-  <p><%= link_to "初めての方はユーザー登録", signup_path %></p>
+  <p><%= link_to "初めての方はユーザー登録", signup_path(quiz_industry: @quiz_selection&.key) %></p>
 </section>

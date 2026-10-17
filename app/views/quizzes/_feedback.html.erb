@@ -1,0 +1,6 @@
+<section class="feedback" aria-label="回答結果">
+  <h2><%= @selected_choice.is_correct ? "○ 正解です" : "× 不正解です" %></h2>
+  <p>あなたの回答：<%= @selected_choice.body %></p>
+  <p>正解：<%= @question.correct_choice.body %></p>
+  <h3>なぜそうなる？</h3><p class="explanation"><%= @question.explanation %></p>
+</section>

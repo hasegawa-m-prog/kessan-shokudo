@@ -245,9 +245,9 @@ AIを下書きに使う場合も、数値・正解・解説を確認してから
 
 - Ruby 3.4.11 / Rails 8.1.4 / PostgreSQL 17
 - ERB・CSSによる画面、RSpec・FactoryBotによるテスト
-- 現在はTOPページ・ユーザー登録・ログイン・ログアウトまでの開発段階です。
-- クイズ・BS図解・回答履歴・復習・公開用15問は未実装です。MVPリリース完了ではありません。
-- 初期版の公開URL：[決算食堂](https://kessan-shokudo.onrender.com)（2026年10月17日公開）。MVPレビュー提出用の完成版ではありません。
+- TOP・ユーザー登録・ログイン・ログアウト、業種選択・5問クイズ・BS図解・解説、回答履歴・1問復習を実装しています。
+- 公開用問題は3業種各5問、計15問です。開始確認・登録やログインを経た業種保持・同じ業種への再挑戦・学習回ごとの履歴も利用できます。
+- 公開URL：[決算食堂](https://kessan-shokudo.onrender.com)（2026年10月17日公開）。MVPレビュー提出準備中です。同僚・知人への試用は未実施で、今後継続します。
 
 ### Macで準備する
 
@@ -278,11 +278,13 @@ pg_ctl -D /opt/homebrew/var/postgresql@17 -l /opt/homebrew/var/postgresql@17/ser
 ```sh
 bundle install
 bin/rails db:prepare
+bin/rails quiz:seed_public
 bin/rails server -b 127.0.0.1
 ```
 
 ブラウザで `http://127.0.0.1:3000` を開きます。終了はターミナルで `Control + C` です。
 `db:prepare`は、開発用とテスト用の保存場所を用意するコマンドです。本番DBの接続情報を設定した状態で実行しないでください。
+`quiz:seed_public`は確認済みの15問を開発用DBへ登録します。本番への登録は[公開手順](docs/deployment.md)に従って明示的に行い、開発用の動作確認問題は本番へ入れません。
 
 ### テストとコードの確認
 

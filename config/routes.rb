@@ -4,6 +4,17 @@ Rails.application.routes.draw do
   resources :registrations, only: :create
   get "login", to: "sessions#new", as: :login
   resource :session, only: [ :create, :destroy ]
+  resource :quiz, only: %i[new create show], controller: "quizzes" do
+    get :confirmation
+    post :answer
+    get :result
+  end
+  resources :quiz_runs, only: :show, path: "histories/runs"
+  resources :histories, only: %i[index show]
+  get "reviews", to: "reviews#index"
+  resource :review, only: %i[create show], controller: "reviews" do
+    post :answer
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
