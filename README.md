@@ -247,7 +247,7 @@ AIを下書きに使う場合も、数値・正解・解説を確認してから
 - ERB・CSSによる画面、RSpec・FactoryBotによるテスト
 - 現在はTOPページ・ユーザー登録・ログイン・ログアウトまでの開発段階です。
 - クイズ・BS図解・回答履歴・復習・公開用15問は未実装です。MVPリリース完了ではありません。
-- 公開URLはまだありません。`localhost`のURLは提出に使いません。
+- 初期版の公開URL：[決算食堂](https://kessan-shokudo.onrender.com)（2026年10月17日公開）。MVPレビュー提出用の完成版ではありません。
 
 ### Macで準備する
 
@@ -295,7 +295,7 @@ bin/bundler-audit
 
 RSpecは動作、RuboCopはコードの書き方、Brakemanとbundler-auditはセキュリティ上の既知の問題を確認します。
 RSpec実行後は `coverage/index.html` でテストが通ったコードの範囲を確認できます。数値が高くても、すべての動作が正しい保証にはなりません。
-GitHub ActionsでもPRの作成・更新時にこれらを実行する設定を用意しています。GitHub上での実行は未確認です。
+GitHub ActionsでもPRの作成・更新時にこれらを実行します。[初回CIの成功結果](https://github.com/hasegawa-m-prog/kessan-shokudo/actions/runs/39011760774)を確認済みです。
 
 ### 設計・公開準備
 
