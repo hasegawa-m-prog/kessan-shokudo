@@ -1,0 +1,19 @@
+<% content_for :title, "間違えた問題｜決算食堂" %>
+<section class="learning">
+  <h1>間違えた問題</h1>
+  <p>過去に間違えた問題を、1問ずつ復習できます。出題を終了した問題は除いています。</p>
+  <% if @answers.empty? %>
+    <p class="notice">このページに復習する問題はありません。</p>
+  <% else %>
+    <ul class="history-list">
+      <% @answers.each do |answer| %>
+        <% question = answer.quiz_run_question.question %>
+        <li class="card"><p class="note"><%= question.industry.name %></p><h2><%= question.title %></h2>
+          <%= button_to "この問題を復習する", review_path, params: { answer_id: answer.id }, class: "button secondary" %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+  <nav aria-label="復習一覧のページ"><% if @page > 1 %><%= link_to "前の20件", reviews_path(page: @page - 1) %><% end %><% if @has_next %><%= link_to "次の20件", reviews_path(page: @page + 1) %><% end %></nav>
+  <div class="actions"><%= link_to "クイズを始める", new_quiz_path, class: "button primary" %><%= link_to "回答履歴へ", histories_path %></div>
+</section>

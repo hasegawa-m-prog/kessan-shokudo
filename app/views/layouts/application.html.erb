@@ -28,6 +28,8 @@
       <%= link_to "決算食堂（仮）", root_path, class: "brand" %>
       <nav aria-label="メインメニュー">
         <% if current_user %>
+          <%= link_to "回答履歴", histories_path %>
+          <%= link_to "復習", reviews_path %>
           <span class="login-state">ログイン中</span>
           <%= button_to "ログアウト", session_path, method: :delete, class: "nav-button" %>
         <% else %>

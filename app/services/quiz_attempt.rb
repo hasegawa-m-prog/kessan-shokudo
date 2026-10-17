@@ -22,19 +22,34 @@ class QuizAttempt
     new(session: session, user: user)
   end
 
-  def initialize(session:, user:)
+  def self.start_review(session:, user:, answer_id:)
+    source = user.answers.reviewable.find(answer_id)
+    question = source.quiz_run_question.question
+    run = question.with_lock do
+      raise ActiveRecord::RecordNotFound unless Question.available.exists?(question.id)
+      run = user.quiz_runs.create!(industry: question.industry, kind: "review", started_at: Time.current)
+      run.quiz_run_questions.create!(question: question, position: 1)
+      run
+    end
+    session[:review] = { "token" => SecureRandom.hex(16), "started_at" => Time.current.to_i, "run_id" => run.id }
+    new(session: session, user: user, kind: "review")
+  end
+
+  def initialize(session:, user:, kind: "quiz")
     @session, @user = session, user
-    @state = session[:quiz]
+    @session_key = kind.to_sym
+    @expected_count = kind == "review" ? 1 : 5
+    @state = session[@session_key]
     raise Expired unless @state.is_a?(Hash) && @state["started_at"].to_i > 2.hours.ago.to_i
     @token = @state.fetch("token")
     if @state["run_id"]
       raise Expired unless user
       @run = user.quiz_runs.find_by(id: @state["run_id"])
-      raise Expired unless @run
+      raise Expired unless @run && @run.kind == kind
       reload_member
       @industry_name = @run.industry&.name || "おまかせ"
     else
-      raise Expired if user # ゲストの記録を会員へ引き継がない
+      raise Expired if user || kind == "review" # ゲストの記録を会員へ引き継がない
       @selected_ids = @state.fetch("answers")
       load_questions(@state.fetch("ids"))
       @industry_name = @state.fetch("industry")
@@ -63,13 +78,20 @@ class QuizAttempt
       choice = validate_answer(position, choice_id)
       if choice
         @selected_ids = selected_ids + [ choice.id ]
-        @session[:quiz] = @state.merge("answers" => selected_ids)
+        @session[@session_key] = @state.merge("answers" => selected_ids)
       end
     end
   end
 
   def selected_choice(index)
-    questions[index].choices.find { |choice| choice.id == selected_ids[index] }
+    return unless selected_ids[index]
+    question_with_choices(index).choices.find { |choice| choice.id == selected_ids[index] }
+  end
+
+  def question_with_choices(index)
+    question = questions.fetch(index)
+    ActiveRecord::Associations::Preloader.new(records: [ question ], associations: :choices).call
+    question
   end
 
   def correct_count
@@ -79,9 +101,9 @@ class QuizAttempt
   private
 
   def load_questions(ids)
-    records = Question.with_diagrams.where(id: ids).index_by(&:id)
+    records = Question.where(id: ids).index_by(&:id)
     @questions = ids.map { |id| records.fetch(id) }
-    raise Expired unless questions.size == 5
+    raise Expired unless questions.size == @expected_count
   end
 
   def reload_member
@@ -94,7 +116,7 @@ class QuizAttempt
     raise InvalidAnswer, "表示されている問題に回答してください。" unless position.between?(1, questions.size)
     return nil if position <= selected_ids.size # 同じPOSTの再送は最初の回答を維持
     raise InvalidAnswer, "順番に回答してください。" unless position == selected_ids.size + 1
-    choice = questions[position - 1].choices.find { |candidate| candidate.id.to_s == choice_id.to_s }
+    choice = question_with_choices(position - 1).choices.find { |candidate| candidate.id.to_s == choice_id.to_s }
     raise InvalidAnswer, "この問題の選択肢を1つ選んでください。" unless choice
     choice
   end

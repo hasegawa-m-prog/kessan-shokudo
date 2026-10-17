@@ -82,6 +82,8 @@ h3 { font-size: 19px; margin: 10px 0; }
 .result-list { padding-left: 24px; }
 .result-list li { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .result-list span { display: block; font-size: 14px; }
+.history-list { padding: 0; list-style: none; display: grid; gap: 16px; }
+.history-list h2 { margin: 10px 0; font-size: 20px; }
 @media (max-width: 640px) {
   .diagrams { grid-template-columns: 1fr; }
   .site-header { padding: 16px 20px; flex-wrap: wrap; gap: 10px; }

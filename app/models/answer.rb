@@ -1,4 +1,5 @@
 class Answer < ApplicationRecord
+  scope :reviewable, -> { joins(:choice, quiz_run_question: :question).where(choices: { is_correct: false }).merge(Question.available) }
   belongs_to :quiz_run_question
   belongs_to :choice
   validates :quiz_run_question_id, uniqueness: true

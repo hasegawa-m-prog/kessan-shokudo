@@ -79,8 +79,28 @@ const baseUrl = 'http://127.0.0.1:3000';
     }
     await page.getByText('ログイン中の回答は保存されます。', { exact: false }).waitFor();
     await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
+    await page.getByRole('navigation').getByRole('link', { name: 'ログイン', exact: true }).click();
+    await page.getByLabel('メールアドレス').fill(email);
+    await page.getByLabel('パスワード', { exact: true }).fill(password);
+    await page.getByRole('button', { name: 'ログインする' }).click();
+    await page.getByRole('navigation').getByRole('link', { name: '回答履歴', exact: true }).click();
+    assert.equal(await page.locator('.history-list li').count(), 5);
+    await checkWidth();
+    await page.locator('.history-list h2 a').first().click();
+    await page.getByRole('region', { name: '回答結果' }).waitFor();
+    await page.getByRole('navigation').getByRole('link', { name: '復習', exact: true }).click();
+    assert.equal(await page.locator('.history-list li').count(), 4);
+    await page.getByRole('button', { name: 'この問題を復習する', exact: true }).first().click();
+    await page.locator('input[name="choice_id"]').first().check();
+    await page.getByRole('button', { name: '回答する', exact: true }).click();
+    await page.getByRole('status').waitFor();
+    await checkWidth();
+    await page.getByRole('navigation').getByRole('link', { name: '回答履歴', exact: true }).click();
+    assert.equal(await page.locator('.history-list li').count(), 6);
+    await page.screenshot({ path: path.join(__dirname, '../tmp/quiz-history-mobile.png'), fullPage: false });
+    await page.getByRole('button', { name: 'ログアウト', exact: true }).click();
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ result: 'passed', guestRuns: 4, memberRuns: 1, testEmail: email, checks: ['25 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'no browser or server errors'] }));
+    console.log(JSON.stringify({ result: 'passed', guestRuns: 4, memberRuns: 1, reviewRuns: 1, testEmail: email, checks: ['26 questions answered', 'no answer leakage', 'two diagrams after answer', 'transaction changes', 'mobile and desktop widths', 'guest data not transferred', 'history after re-login', 'separate review answer saved', 'no browser or server errors'] }));
   } finally {
     await browser.close();
   }

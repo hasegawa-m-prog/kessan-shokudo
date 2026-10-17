@@ -1,0 +1,12 @@
+<% content_for :title, "回答の詳細｜決算食堂" %>
+<section class="learning">
+  <p><%= link_to "回答履歴へ戻る", histories_path %></p>
+  <h1><%= @question.title %></h1>
+  <p class="note">回答日時：<%= @answer.answered_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間） · 問題の版：<%= @question.version %></p>
+  <% if @question.retired_at.present? %><p class="notice">この版は出題を終了しています。当時の内容を表示していますが、新しい復習は開始できません。</p><% end %>
+  <p class="question-body"><%= @question.body %></p>
+  <aside class="assumptions"><h2>この問題の条件</h2><p><%= @question.assumptions %></p></aside>
+  <%= render "quizzes/feedback" %>
+  <%= render "quizzes/diagrams" %>
+  <% if @can_review %><div class="actions"><%= button_to "この問題を復習する", review_path, params: { answer_id: @answer.id }, class: "button primary" %></div><% end %>
+</section>

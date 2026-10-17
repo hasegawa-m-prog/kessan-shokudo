@@ -8,6 +8,11 @@ Rails.application.routes.draw do
     post :answer
     get :result
   end
+  resources :histories, only: %i[index show]
+  get "reviews", to: "reviews#index"
+  resource :review, only: %i[create show], controller: "reviews" do
+    post :answer
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

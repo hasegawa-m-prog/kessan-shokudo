@@ -1,0 +1,15 @@
+<section aria-label="BSの図解">
+  <h2><%= @question.kind == "transaction" ? "取引によるBSの変化" : "2社のBSを見比べる" %></h2>
+  <p class="note">単位：円。表示中の図は同じ金額に同じ高さを使用しています。割合は各社の資産合計に対する値です。</p>
+  <div class="diagrams">
+    <% @visible_sheets.each do |sheet| %>
+      <%= render "quizzes/balance_sheet", sheet: sheet, maximum: @maximum, transaction: @question.kind == "transaction" %>
+    <% end %>
+  </div>
+  <% if @selected_choice && @question.kind == "transaction" %>
+    <div class="changes"><h3>増減を文字で確認</h3>
+      <ul><% transaction_changes(@sheets).each do |change| %><li><%= change %></li><% end %></ul>
+      <p>資産合計：<%= yen(@sheets.first.total("asset")) %> → <%= yen(@sheets.last.total("asset")) %></p>
+    </div>
+  <% end %>
+</section>

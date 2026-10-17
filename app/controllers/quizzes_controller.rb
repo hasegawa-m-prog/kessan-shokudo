@@ -48,7 +48,11 @@ class QuizzesController < ApplicationController
   end
 
   def result
-    redirect_to quiz_path, alert: "5問に回答してから結果を確認できます。" unless @attempt.completed?
+    unless @attempt.completed?
+      redirect_to quiz_path, alert: "5問に回答してから結果を確認できます。"
+      return
+    end
+    ActiveRecord::Associations::Preloader.new(records: @attempt.questions, associations: :choices).call
   end
 
   private
@@ -58,10 +62,12 @@ class QuizzesController < ApplicationController
   end
 
   def prepare_question
-    @question = @attempt.questions[@position - 1]
+    @question = @attempt.question_with_choices(@position - 1)
     @selected_choice = @attempt.selected_choice(@position - 1)
-    @sheets = @question.balance_sheets.to_a
-    @visible_sheets = @question.kind == "transaction" && !@selected_choice ? @sheets.first(1) : @sheets
+    sheets = @question.balance_sheets
+    sheets = sheets.limit(1) if @question.kind == "transaction" && !@selected_choice
+    @sheets = sheets.includes(balance_sheet_items: :account).to_a
+    @visible_sheets = @sheets
     @maximum = @visible_sheets.map { |sheet| sheet.total("asset") }.max
   end
 

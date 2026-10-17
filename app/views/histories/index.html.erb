@@ -1,0 +1,23 @@
+<% content_for :title, "回答履歴｜決算食堂" %>
+<section class="learning">
+  <h1>回答履歴</h1>
+  <p>ログイン後の回答を、新しい順に表示しています。</p>
+  <p><%= link_to "間違えた問題を復習する", reviews_path %></p>
+  <% if @answers.empty? %>
+    <p class="notice">このページに回答履歴はありません。クイズに回答するとここに残ります。</p>
+  <% else %>
+    <ol class="history-list">
+      <% @answers.each do |answer| %>
+        <% question = answer.quiz_run_question.question %>
+        <li class="card">
+          <p class="note"><%= answer.answered_at.in_time_zone("Tokyo").strftime("%Y年%m月%d日 %H:%M") %>（日本時間） · <%= question.industry.name %> · <%= answer.quiz_run_question.quiz_run.kind == "review" ? "復習" : "クイズ" %></p>
+          <h2><%= link_to question.title, history_path(answer) %></h2>
+          <p><%= answer.correct? ? "○ 正解" : "× 不正解" %> · あなたの回答：<%= answer.choice.body %></p>
+          <p class="note">問題の版：<%= question.version %></p>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+  <nav aria-label="履歴のページ"><% if @page > 1 %><%= link_to "前の20件", histories_path(page: @page - 1) %><% end %><% if @has_next %><%= link_to "次の20件", histories_path(page: @page + 1) %><% end %></nav>
+  <div class="actions"><%= link_to "クイズを始める", new_quiz_path, class: "button primary" %></div>
+</section>
